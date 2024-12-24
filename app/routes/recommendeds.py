@@ -2,11 +2,11 @@
 from flask import Blueprint, request, jsonify
 from services.db import mongo
 from utils.validation import validate_recommended
+from .views import view_bp
 
 # Define the Blueprint
-recommended_bp = Blueprint("/users", __name__)
 
-@recommended_bp.route("/<int:userId>/profiles/<int:profileId>/views", methods=["GET"])
+@view_bp.route("/<int:userId>/profiles/<int:profileId>/views", methods=["GET"])
 def get_films(userId, profileId):
 
     recommendeds = list(mongo.db.recommendeds.find())
@@ -16,7 +16,7 @@ def get_films(userId, profileId):
             profileRecommended.append(str(recommended["_filmId"]))
     return jsonify(profileRecommended), 200
 
-@recommended_bp.route("/<int:userId>/profiles/<int:profileId>/views", methods=["POST"])
+@view_bp.route("/<int:userId>/profiles/<int:profileId>/views", methods=["POST"])
 def add_recommended(userId, profileId):
     data = request.json
     valid, error = validate_recommended(data)
