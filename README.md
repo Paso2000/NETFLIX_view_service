@@ -13,7 +13,7 @@ ASEE Project, view service part.
 - profile: Profile
 - filmID : Int
 - raccomandationType: String
-- Viewed: Boolean
+- Vie-wed: Boolean
 
 ## ENDPOINT
 - /users/{userId}/profiles/{profileId}/views
