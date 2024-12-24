@@ -1,0 +1,15 @@
+version: "3.8"
+services:
+  flask_app_view:
+    build: .
+    ports:
+      - "8080:8080"
+    volumes:
+      - .:/app
+    depends_on:
+      - mongodb_view
+  mongodb_view:
+    image: mongo:latest
+    container_name: mongodb_view
+    ports:
+      - "27017:27017"

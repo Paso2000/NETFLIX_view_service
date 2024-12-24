@@ -3,17 +3,14 @@ ASEE Project, view service part.
 
 ## ENTITY CLASSES
 ### View class
-- profile: Profile
+- profileId: Int
 - filmID: int
 - timesOFTheFilm: Int
-- isFinished: boolean
 
 
 ### Recommended class
-- profile: Profile
+- profileId: Int
 - filmID : Int
-- raccomandationType: String
-- Vie-wed: Boolean
 
 ## ENDPOINT
 - /users/{userId}/profiles/{profileId}/views
@@ -23,12 +20,10 @@ ASEE Project, view service part.
     -  GET
     - PUT
     - DELETE
-- /users/{userId}/profiles/{profileId}/raccomanded
+- /users/{userId}/profiles/{profileId}/recommended
     - GET
     - POST
-- /users/{userId}/profiles/{profileId}/raccomanded/{filmID}
-    - GET
-    - PUT
+- /users/{userId}/profiles/{profileId}/recommended/{filmID}
     - DELETE
 
 ## Overview
