@@ -25,4 +25,17 @@ def add_recommended(userId, profileId):
     mongo.db.recommendeds.insert_one(data)
     return jsonify({"message": "Recommended added successfully"}), 201
 
+@view_bp.route("/<int:userId>/profiles/<int:profileId>/views/<int:filmId>", methods=["DELETE"])
+def delete_actor(userId,profileId,filmId):
+
+    result = mongo.db.recommendeds.delete_one({
+        "profileId": profileId,
+        "_filmId": filmId
+    })
+    if result.deleted_count > 0:
+        return "", 204
+    return jsonify({"error": "Actor not found"}), 404
+
+
+
 
