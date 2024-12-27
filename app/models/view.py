@@ -1,6 +1,6 @@
 class View:
 
-    def __init__(self, filmId: int, profileId: Int, timesOFTheFilm: Int ):
+    def __init__(self, filmId: int, profileId: int, timesOFTheFilm: int ):
 
         self.filmId = filmId  # Unique ID of the actor
         self.profileId = profileId  # First name of the actor

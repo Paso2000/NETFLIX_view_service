@@ -1,5 +1,5 @@
 class Recommended:
-    def __init__(self, filmId, profileId):
+    def __init__(self, filmId: int , profileId: int):
 
         self.filmId = filmId  # Unique ID of the film
         self.profileId = profileId

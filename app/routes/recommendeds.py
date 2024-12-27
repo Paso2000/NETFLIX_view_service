@@ -4,19 +4,15 @@ from services.db import mongo
 from utils.validation import validate_recommended
 from .views import view_bp
 
-# Define the Blueprint
-
-@view_bp.route("/<int:userId>/profiles/<int:profileId>/views", methods=["GET"])
+@view_bp.route("/", methods=["GET"])
 def get_films(userId, profileId):
 
-    recommendeds = list(mongo.db.recommendeds.find())
-    profileRecommended=[]
-    for recommended in recommendeds:
-        if recommended.profileId == profileId:
-            profileRecommended.append(str(recommended["_filmId"]))
-    return jsonify(profileRecommended), 200
+    reccommends = list(mongo.db.recommendeds.find())
+    for rec in reccommends:
+        rec["_id"] = str(rec["_id"])  # Convert ObjectId to string for serialization
+    return jsonify(reccommends), 200
 
-@view_bp.route("/<int:userId>/profiles/<int:profileId>/views", methods=["POST"])
+@view_bp.route("/<int:userId>", methods=["POST"])
 def add_recommended(userId, profileId):
     data = request.json
     valid, error = validate_recommended(data)
@@ -25,7 +21,7 @@ def add_recommended(userId, profileId):
     mongo.db.recommendeds.insert_one(data)
     return jsonify({"message": "Recommended added successfully"}), 201
 
-@view_bp.route("/<int:userId>/profiles/<int:profileId>/views/<int:filmId>", methods=["DELETE"])
+@view_bp.route("/<int:userId>/profiles/<int:profileId>/recommendeds/<int:filmId>", methods=["DELETE"])
 def delete_actor(userId,profileId,filmId):
 
     result = mongo.db.recommendeds.delete_one({

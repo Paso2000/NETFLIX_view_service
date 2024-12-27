@@ -29,20 +29,20 @@ def create_app():
     app = Flask(__name__)
 
     # Application configuration
-    app.config["MONGO_URI"] = "mongodb://mongodb:27017/contentdb"
+    app.config["MONGO_URI"] = "mongodb://mongodb:27017/viewdb"
 
     # Initialize database and routes
     init_db(app)
     init_routes(app)
 
     # Optional: Print all registered routes for debugging
-    # print("Registered Routes:")
-    # for rule in app.url_map.iter_rules():
-    #     print(rule)
+    print("Registered Routes:")
+    for rule in app.url_map.iter_rules():
+        print(rule)
 
     return app
 
 if __name__ == "__main__":
     # Create the application instance and run the development server
     app = create_app()
-    app.run(host="0.0.0.0", port=8080)
+    app.run(host="0.0.0.0", port=8082)

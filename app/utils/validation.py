@@ -4,7 +4,7 @@ def validate_view(data):
     required_fields = {
         "profileId": int,
         "filmId": int,
-        "timesOFTheFilm": Int
+        "timesOFTheFilm": int
     }
     # Check for missing fields
     missing_fields = [field for field in required_fields if field not in data]
@@ -20,8 +20,8 @@ def validate_view(data):
 
 def validate_recommended(data):
     required_fields = {
-        "filmId": int,
         "profileId": int,
+        "filmId": int,
     }
     # Check for missing fields
     missing_fields = [field for field in required_fields if field not in data]
