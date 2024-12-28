@@ -1,11 +1,9 @@
 class Recommended:
-    def __init__(self, filmId: int , profileId: int):
-
+    def __init__(self, filmId: int, profileId: int):
         self.filmId = filmId  # Unique ID of the film
         self.profileId = profileId
 
     def to_dict(self):
-
         return {
             "filmId": self.filmId,
             "profileId": self.profileId

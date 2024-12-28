@@ -1,14 +1,11 @@
 class View:
 
-    def __init__(self, filmId: int, profileId: int, timesOFTheFilm: int ):
-
+    def __init__(self, filmId: int, profileId: int, timesOFTheFilm: int):
         self.filmId = filmId  # Unique ID of the actor
         self.profileId = profileId  # First name of the actor
         self.timesOFTheFilm = timesOFTheFilm  # Last name of the actor
 
-
     def to_dict(self):
-
         return {
             "filmId": self.filmId,
             "profileId": self.profileId,
@@ -22,4 +19,3 @@ class View:
             profileId=data.get("profileId"),
             timesOFTheFilm=data.get("timesOFTheFilm"),
         )
-
