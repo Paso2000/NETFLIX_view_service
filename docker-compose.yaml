@@ -8,8 +8,17 @@ services:
       - .:/app
     depends_on:
       - mongodb_view
+    networks:
+      - shared_network
+
   mongodb_view:
     image: mongo:latest
     container_name: mongodb_view
     ports:
       - "27019:27017"
+    networks:
+      - shared_network
+
+networks:
+  shared_network:
+    external: true

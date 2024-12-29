@@ -6,7 +6,7 @@ from utils.validation import validate_recommended
 # Define the Blueprint
 recommended_bp = Blueprint("users", __name__)
 
-USER_SERVICE_URL = "http://127.0.0.1:8081"
+USER_SERVICE_URL = "http://user_service:8081"
 
 @recommended_bp.route("/<int:userId>/profiles/<int:profileId>/recommendeds", methods=["GET"])
 def get_recommendeds(userId, profileId):
@@ -17,9 +17,11 @@ def get_recommendeds(userId, profileId):
     except requests.exceptions.RequestException as e:
         return jsonify({"error": str(e)}), 404
 
+    return jsonify("[film for film in recommended_films]"), 200
+
     # Logica per recuperare i film raccomandati
-    recommended_films = mongo.db.recommendeds.find({"userId": userId, "profileId": profileId})
-    return jsonify([film for film in recommended_films]), 200
+   # recommended_films = mongo.db.recommendeds.find({"userId": userId, "profileId": profileId})
+   # return jsonify([film for film in recommended_films]), 200
 
 
 @recommended_bp.route("/<int:userId>/profiles/<int:profileId>/recommendeds", methods=["POST"])
