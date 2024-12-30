@@ -15,38 +15,32 @@ CONTENT_SERVICE_URL = "http://content_service:8080"
 # chiedo le inforamzioni di quei fil dall filmId
 @recommended_bp.route("/<int:userId>/profiles/<int:profileId>/recommendeds", methods=["GET"])
 def get_recommendeds(userId, profileId):
-    # Recupera i film raccomandati dal database per userId e profileId
-    recommendeds = list(mongo.db.recommendeds.find({"userId": userId, "profileId": profileId}))
-    if not recommendeds:
-        return jsonify({"error": "No recommended films found for this user and profile"}), 404
-    # Estrae tutti i filmId dai risultati
-    film_ids = [rec["filmId"] for rec in recommendeds]
-    # Ottiene le informazioni sui film dal servizio content_service
+    """
+      Effettua una richiesta al servizio user_service per recuperare i dettagli
+      dell'utente e i profili associati a userId e profileId.
+      """
     try:
-        response = requests.get(
-            f"{CONTENT_SERVICE_URL}/films/bulk",
-            json={"filmIds": film_ids},
-        )
+        # Effettua una richiesta al servizio user_service
+        response = requests.get(f"{USER_SERVICE_URL}/users/{userId}")
         response.raise_for_status()  # Solleva un'eccezione per errori HTTP
-        film_details = response.json()
+
+        # Ottiene i dati dell'utente dalla risposta
+        user_data = response.json()
+        profiles = user_data.get("profiles", "")
+
+        # Controlla se il profileId richiesto è associato all'utente
+        if str(profileId) not in profiles.split(", "):
+            return jsonify({"error": f"Profile ID {profileId} not found for User ID {userId}"}), 404
+
+        return jsonify({
+            "userId": userId,
+            "profileId": profileId,
+            "profiles": profiles.split(", "),
+        }), 200
+
     except requests.exceptions.RequestException as e:
-        return jsonify({"error": f"Failed to fetch film details: {str(e)}"}), 500
-
-    # Combina i dettagli dei film con i dati raccomandati
-    result = []
-    for rec in recommendeds:
-        film_detail = next((film for film in film_details if film["filmId"] == rec["filmId"]), None)
-        if film_detail:
-            result.append({
-                "userId": userId,
-                "profileId": profileId,
-                "filmId": rec["filmId"],
-                "recommended_at": rec["recommended_at"],
-                "film_details": film_detail,
-            })
-
-    return jsonify(result), 200
-
+        # Gestione degli errori di connessione o HTTP
+        return jsonify({"error": f"Failed to fetch user details: {str(e)}"}), 500
 
 @recommended_bp.route("/<int:userId>/profiles/<int:profileId>/recommendeds", methods=["POST"])
 def add_recommendeds(userId, profileId):
