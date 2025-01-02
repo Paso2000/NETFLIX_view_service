@@ -1,7 +1,7 @@
-import requests
 from flask import Blueprint, request, jsonify
 from services.db import mongo
 from utils.validation import validate_recommended
+
 
 # Define the Blueprint
 recommended_bp = Blueprint("users", __name__)
@@ -51,19 +51,17 @@ def get_recommendeds(userId, profileId):
 @recommended_bp.route("/<int:userId>/profiles/<int:profileId>/recommendeds", methods=["POST"])
 def add_recommendeds(userId, profileId):
     # Verifica che l'utente e il profilo esistano
-    try:
-        response = requests.get(f"{USER_SERVICE_URL}/users/{userId}/profiles/{profileId}")
-        response.raise_for_status()
-    except requests.exceptions.RequestException as e:
+     try:
+         response = requests.get(f"{USER_SERVICE_URL}/users/{userId}/profiles/{profileId}")
+         response.raise_for_status()
+     except requests.exceptions.RequestException as e:
         return jsonify({"error": str(e)}), 404
 
-    # Aggiungi il film raccomandato
-    data = request.json
-    data["userId"] = userId
-    data["profileId"] = profileId
-    mongo.db.recommendeds.insert_one(data)
+     data = request.json
 
-    return jsonify({"message": "Recommended added successfully"}), 201
+    # Aggiungi il film raccomandato
+     mongo.db.recommendeds.insert_one(data)
+     return jsonify({"message": "Recommended added successfully"}), 201
 
 
 @recommended_bp.route("/<int:userId>/profiles/<int:profileId>/recommendeds/<int:filmId>", methods=["DELETE"])

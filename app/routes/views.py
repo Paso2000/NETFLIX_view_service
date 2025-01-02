@@ -7,46 +7,55 @@ view_bp = Blueprint("users", __name__)
 
 @view_bp.route("/<int:userId>/profiles/<int:profileId>/views", methods=["GET"])
 def get_views(userId, profileId):
-     return jsonify("to implements"), 200
+    views = list(mongo.db.views.find())
+    for view in views:
+        view["_id"] = str(view["_id"])
+    return jsonify(views), 200
 
 @view_bp.route("/<int:userId>/profiles/<int:profileId>/views", methods=["POST"])
 def add_recommended(userId, profileId):
+    data = request.json
+    mongo.db.views.insert_one(data)
+    valid, error = validate_view(data)
+    if not valid:
+        return jsonify(error), 400
     return jsonify({"message": "Recommended added successfully"}), 201
 
 @view_bp.route("/<int:userId>/profiles/<int:profileId>/views/<int:filmId>", methods=["GET"])
-def get_actor_by_id(profileId,filmId):
+def get_actor_by_id(userId,profileId,filmId):
 
     view = mongo.db.views.find_one({
+        "filmId": filmId,
+        "userId": userId,
         "profileId": profileId,
-        "_filmId": filmId
     })
-
     if view:
-        return jsonify(str(view["_filmId"])), 200
-    return jsonify({"error": "Actor not found"}), 404
+        return jsonify(str(view["filmId"])), 200
+    return jsonify({"error": "View not found"}), 404
 
 @view_bp.route("/<int:userId>/profiles/<int:profileId>/views/<int:filmId>", methods=["PUT"])
 def update_actor(userId,profileId,filmId):
     data = request.json
-    updated_view = mongo.db.actors.find_one_and_update(
+    updated_view = mongo.db.views.find_one_and_update(
         {
+            "filmId": filmId,
+            "userId": userId,
             "profileId": profileId,
-            "_filmId": filmId
         },
         {"$set": data},
         return_document=True
     )
     if updated_view:
-        return jsonify(str(updated_view["_filmId"])), 200
-    return jsonify({"error": "Actor not found"}), 404
+        return jsonify(str(updated_view["filmId"])), 200
+    return jsonify({"error": "View not found"}), 404
 
 @view_bp.route("/<int:userId>/profiles/<int:profileId>/views/<int:filmId>", methods=["DELETE"])
-def delete_actor(userId,profileId,filmId):
+def delete_view(userId,profileId,filmId):
 
-    result = mongo.db.actors.delete_one({
-        "profileId": profileId,
-        "_filmId": filmId
+    result = mongo.db.views.delete_one({
+        "filmId" : filmId,
+        "profileId": profileId
     })
     if result.deleted_count > 0:
-        return "", 204
-    return jsonify({"error": "Actor not found"}), 404
+        return "deleted", 204
+    return jsonify({"error": "View not found"}), 404

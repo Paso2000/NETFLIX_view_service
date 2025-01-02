@@ -7,13 +7,13 @@ services:
     volumes:
       - .:/app
     depends_on:
-      - mongodb_view
+      - view_mongodb
     networks:
       - shared_network
 
-  mongodb_view:
+  view_mongodb:
     image: mongo:latest
-    container_name: mongodb_view
+    container_name: view_mongodb
     ports:
       - "27019:27017"
     networks:

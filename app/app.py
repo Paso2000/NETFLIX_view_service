@@ -19,6 +19,7 @@ from flask import Flask
 from services.db import init_db
 from routes import init_routes  # Import routes to avoid circular dependencies
 
+
 def create_app():
     """
     Create and configure the Flask application.
@@ -29,13 +30,16 @@ def create_app():
     app = Flask(__name__)
 
     # Application configuration
-    app.config["MONGO_URI"] = "mongodb://mongodb:27017/viewdb"
+    app.config["MONGO_URI"] = "mongodb://view_mongodb:27017/viewdb"
 
     # Initialize database and routes
     init_db(app)
     init_routes(app)
 
     # Optional: Print all registered routes for debugging
+
+# Verifica
+# Verifica
     print("Registered Routes:")
     for rule in app.url_map.iter_rules():
         print(rule)

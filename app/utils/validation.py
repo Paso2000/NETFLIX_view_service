@@ -2,8 +2,9 @@
 def validate_view(data):
 
     required_fields = {
-        "profileId": int,
         "filmId": int,
+        "userId": int,
+        "profileId": int,
         "timesOFTheFilm": int
     }
     # Check for missing fields
@@ -20,8 +21,9 @@ def validate_view(data):
 
 def validate_recommended(data):
     required_fields = {
-        "profileId": int,
         "filmId": int,
+        "userId": int,
+        "profileId": int
     }
     # Check for missing fields
     missing_fields = [field for field in required_fields if field not in data]

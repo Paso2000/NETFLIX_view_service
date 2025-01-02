@@ -11,10 +11,3 @@ class Recommended:
             "profileId": self.profileId
         }
 
-    @staticmethod
-    def from_dict(data):
-        return Recommended(
-            filmId=data.get("filmId"),
-            userId=data.get("userId"),
-            profileId=data.get("profileId")
-        )
