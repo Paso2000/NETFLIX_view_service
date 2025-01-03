@@ -30,6 +30,7 @@ def get_actor_by_id(userId,profileId,filmId):
         "profileId": profileId,
     })
     if view:
+
         return jsonify(str(view["filmId"])), 200
     return jsonify({"error": "View not found"}), 404
 
@@ -46,7 +47,7 @@ def update_actor(userId,profileId,filmId):
         return_document=True
     )
     if updated_view:
-        return jsonify(str(updated_view["filmId"])), 200
+        return jsonify(str(updated_view)), 200
     return jsonify({"error": "View not found"}), 404
 
 @view_bp.route("/<int:userId>/profiles/<int:profileId>/views/<int:filmId>", methods=["DELETE"])
