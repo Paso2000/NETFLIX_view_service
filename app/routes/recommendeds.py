@@ -1,80 +1,72 @@
+import requests
 from flask import Blueprint, request, jsonify
 from services.db import mongo
-from utils.validation import validate_recommended
+from utils.validation import validate_view
 
 
 # Define the Blueprint
 recommended_bp = Blueprint("users", __name__)
 
-USER_SERVICE_URL = "http://user_service:8081"
-CONTENT_SERVICE_URL = "http://content_service:8080"
+CONTENT_SERVICE_URL = "http://content_service:8080/films"
 
-
-# torno i film raccomandati per quel profilo
-# controllo se ce ci sono entita recommended per user-profilo ID
-# chiedo le inforamzioni di quei fil dall filmId
 @recommended_bp.route("/<int:userId>/profiles/<int:profileId>/recommendeds", methods=["GET"])
 def get_recommendeds(userId, profileId):
-    # Recupera i film raccomandati dal database per userId e profileId
-    recommendeds = list(mongo.db.recommendeds.find({"userId": userId, "profileId": profileId}))
-    if not recommendeds:
-        return jsonify({"error": "No recommended films found for this user and profile"}), 404
-    # Estrae tutti i filmId dai risultati
-    film_ids = [rec["filmId"] for rec in recommendeds]
-    return jsonify(str(film_ids)), 200
-    # Ottiene le informazioni sui film dal servizio content_service
-    # try:
-    #     response = requests.get(
-    #         f"{CONTENT_SERVICE_URL}/films/bulk",
-    #         json={"filmIds": film_ids},
-    #     )
-    #     response.raise_for_status()  # Solleva un'eccezione per errori HTTP
-    #     film_details = response.json()
-    # except requests.exceptions.RequestException as e:
-    #     return jsonify({"error": f"Failed to fetch film details: {str(e)}"}), 500
-    #
-    # # Combina i dettagli dei film con i dati raccomandati
-    # result = []
-    # for rec in recommendeds:
-    #     film_detail = next((film for film in film_details if film["filmId"] == rec["filmId"]), None)
-    #     if film_detail:
-    #         result.append({
-    #             "userId": userId,
-    #             "profileId": profileId,
-    #             "filmId": rec["filmId"],
-    #             "recommended_at": rec["recommended_at"],
-    #             "film_details": film_detail,
-    #         })
-    #
-    # return jsonify(result), 200
+    """
+    Ottieni i film raccomandati per un determinato utente e profilo,
+    includendo i dettagli completi dei film.
+    """
+    recs = list(mongo.db.recommendeds.find({"userId": userId, "profileId": profileId}))
+    enriched_recs = []
 
+    for rec in recs:
+        film_id = rec.get("filmId")
+        if not film_id:
+            continue
+
+        # Effettua la richiesta al servizio contenuti per ottenere i dettagli del film
+        try:
+            response = requests.get(f"{CONTENT_SERVICE_URL}/{film_id}")
+            if response.status_code == 200:
+                film_details = response.json()
+                rec["filmDetails"] = film_details  # Aggiungi i dettagli del film
+            else:
+                rec["filmDetails"] = {"error": "Film not found in content service"}
+        except requests.exceptions.RequestException as e:
+            rec["filmDetails"] = {"error": str(e)}
+
+        rec["_id"] = str(rec["_id"])  # Converti ObjectId in stringa
+        enriched_recs.append(rec)
+
+    return jsonify(enriched_recs), 200
 
 @recommended_bp.route("/<int:userId>/profiles/<int:profileId>/recommendeds", methods=["POST"])
 def add_recommendeds(userId, profileId):
-    # Verifica che l'utente e il profilo esistano
-    #  try:
-    #      response = requests.get(f"{USER_SERVICE_URL}/users/{userId}/profiles/{profileId}")
-    #      response.raise_for_status()
-    #  except requests.exceptions.RequestException as e:
-    #     return jsonify({"error": str(e)}), 404
-
+    """
+    Aggiungi un film raccomandato per un determinato utente e profilo.
+    """
     data = request.json
-    valid, error = validate_recommended(data)
-    if not valid:
-        return jsonify(error), 400
-    # Aggiungi il film raccomandato
-    mongo.db.recommendeds.insert_one(data)
-    return jsonify({"message": "Recommended added successfully"}), 201
+    # Verifica che tutti i campi richiesti siano presenti
+    required_fields = ["filmId", "userId", "profileId"]
+    for field in required_fields:
+        if field not in data:
+            return jsonify({"error": f"Missing required field: {field}"}), 400
+
+    # Verifica che userId e profileId corrispondano ai parametri della rotta
+    if data["userId"] != userId or data["profileId"] != profileId:
+        return jsonify({"error": "userId and profileId in body must match the route parameters"}), 400
+
+    # Inserisci il film raccomandato nel database
+    mongo.db.recommendeds.insert_one({
+        "filmId": data["filmId"],
+        "userId": data["userId"],
+        "profileId": data["profileId"]
+    })
+
+    return jsonify({"message": "Recommended film added successfully"}), 201
 
 
 @recommended_bp.route("/<int:userId>/profiles/<int:profileId>/recommendeds/<int:filmId>", methods=["DELETE"])
 def delete_recommendeds(userId, profileId, filmId):
-    # Verifica che l'utente e il profilo esistano
-    # try:
-    #     response = requests.get(f"{USER_SERVICE_URL}/users/{userId}/profiles/{profileId}")
-    #     response.raise_for_status()
-    # except requests.exceptions.RequestException as e:
-    #     return jsonify({"error": str(e)}), 404
 
     # Elimina il film raccomandato
     result = mongo.db.recommendeds.delete_one({"userId": userId, "profileId": profileId, "filmId": filmId})
