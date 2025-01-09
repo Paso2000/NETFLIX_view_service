@@ -42,9 +42,43 @@ def get_recommendeds(userId, profileId):
 @recommended_bp.route("/<int:userId>/profiles/<int:profileId>/recommendeds", methods=["POST"])
 def add_recommendeds(userId, profileId):
     """
-    Aggiungi un film raccomandato per un determinato utente e profilo.
+    Aggiungi uno o più film raccomandati per un determinato utente e profilo.
     """
     data = request.json
+
+    # Controlla se il payload è una lista o un singolo oggetto
+    if isinstance(data, list):
+        errors = []
+
+        for item in data:
+            # Verifica che tutti i campi richiesti siano presenti
+            required_fields = ["filmId", "userId", "profileId"]
+            for field in required_fields:
+                if field not in item:
+                    errors.append({"item": item, "error": f"Missing required field: {field}"})
+                    continue
+
+            # Verifica che userId e profileId corrispondano ai parametri della rotta
+            if item["userId"] != userId or item["profileId"] != profileId:
+                errors.append({"item": item, "error": "userId and profileId in body must match the route parameters"})
+                continue
+
+            # Inserisci il film raccomandato nel database
+            mongo.db.recommendeds.insert_one({
+                "filmId": item["filmId"],
+                "userId": item["userId"],
+                "profileId": item["profileId"]
+            })
+
+        if errors:
+            return jsonify({
+                "message": "Some recommended films were not added",
+                "errors": errors
+            }), 400
+
+        return jsonify({"message": "Recommended films added successfully"}), 201
+
+    # Gestione di un singolo oggetto
     # Verifica che tutti i campi richiesti siano presenti
     required_fields = ["filmId", "userId", "profileId"]
     for field in required_fields:
@@ -63,6 +97,7 @@ def add_recommendeds(userId, profileId):
     })
 
     return jsonify({"message": "Recommended film added successfully"}), 201
+
 
 
 @recommended_bp.route("/<int:userId>/profiles/<int:profileId>/recommendeds/<int:filmId>", methods=["DELETE"])

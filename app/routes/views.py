@@ -42,10 +42,29 @@ def get_views(userId, profileId):
 @view_bp.route("/<int:userId>/profiles/<int:profileId>/views", methods=["POST"])
 def add_recommended(userId, profileId):
     data = request.json
-    mongo.db.views.insert_one(data)
+    # Check if the input is a list or a single object
+    if isinstance(data, list):
+        errors = []
+        for view in data:
+            valid, error = validate_view(view)
+            if not valid:
+                errors.append({"view": view, "error": error})
+                continue
+            # Insert each valid view into the database
+            mongo.db.views.insert_one(view)
+
+        if errors:
+            return jsonify({
+                "message": "Some views were not added",
+                "errors": errors
+            }), 400
+        return jsonify({"message": "Views added successfully"}), 201
+    # Handle a single object
     valid, error = validate_view(data)
     if not valid:
         return jsonify(error), 400
+    # Insert the single view into the database
+    mongo.db.views.insert_one(data)
     return jsonify({"message": "View added successfully"}), 201
 
 @view_bp.route("/<int:userId>/profiles/<int:profileId>/views/<int:filmId>", methods=["GET"])
