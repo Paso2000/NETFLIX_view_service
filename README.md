@@ -27,3 +27,19 @@ ASEE Project, view service part.
     - DELETE
 
 ## Overview
+example of view
+{
+"filmId": 1,
+"userId": 1,
+"profileId": 1,
+"timesOFTheFilm": 13
+}
+
+example of recommended
+{
+"filmId": 5,
+"userId": 1,
+"profileId": 1
+}
+
+
