@@ -42,9 +42,9 @@ def create_app():
 
 # Verifica
 # Verifica
-    print("Registered Routes:")
-    for rule in app.url_map.iter_rules():
-        print(rule)
+#    print("Registered Routes:")
+#    for rule in app.url_map.iter_rules():
+ #       print(rule)
 
     return app
 

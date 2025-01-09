@@ -6,13 +6,25 @@ from utils.validation import validate_view
 # Define the Blueprint
 view_bp = Blueprint("users", __name__)
 
+# Base URL for the content service
 CONTENT_SERVICE_URL = "http://content_service:8080/films"
 
 @view_bp.route("/<int:userId>/profiles/<int:profileId>/views", methods=["GET"])
 def get_views(userId, profileId):
     """
-    Ottieni tutte le visualizzazioni per un determinato utente e profilo,
-    includendo i dettagli completi dei film.
+    Retrieve all film views for a specific user profile, including detailed film information.
+
+    Parameters
+    ----------
+    userId : int
+        The unique identifier of the user.
+    profileId : int
+        The unique identifier of the user's profile.
+
+    Returns
+    -------
+    Response
+        JSON response containing a list of views with detailed film information.
     """
     views = list(mongo.db.views.find({"userId": userId, "profileId": profileId}))
     enriched_views = []
@@ -22,27 +34,49 @@ def get_views(userId, profileId):
         if not film_id:
             continue
 
-        # Effettua la richiesta al servizio contenuti per ottenere i dettagli del film
+        # Request film details from the content service
         try:
             response = requests.get(f"{CONTENT_SERVICE_URL}/{film_id}")
             if response.status_code == 200:
                 film_details = response.json()
-                view["filmDetails"] = film_details  # Aggiungi i dettagli del film
+                view["filmDetails"] = film_details  # Add film details
             else:
                 view["filmDetails"] = {"error": "Film not found in content service"}
         except requests.exceptions.RequestException as e:
             view["filmDetails"] = {"error": str(e)}
 
-        view["_id"] = str(view["_id"])  # Converti ObjectId in stringa
+        view["_id"] = str(view["_id"])  # Convert ObjectId to string
         enriched_views.append(view)
 
     return jsonify(enriched_views), 200
 
 
 @view_bp.route("/<int:userId>/profiles/<int:profileId>/views", methods=["POST"])
-def add_recommended(userId, profileId):
+def add_views(userId, profileId):
+    """
+    Add one or more film views for a specific user profile.
+
+    Parameters
+    ----------
+    userId : int
+        The unique identifier of the user.
+    profileId : int
+        The unique identifier of the user's profile.
+
+    Request Body
+    ------------
+    JSON
+        A list of views or a single view object.
+
+    Returns
+    -------
+    Response
+        - 201: Views added successfully.
+        - 400: Validation error for some or all views.
+    """
     data = request.json
-    # Check if the input is a list or a single object
+
+    # Handle a list of views
     if isinstance(data, list):
         errors = []
         for view in data:
@@ -50,7 +84,6 @@ def add_recommended(userId, profileId):
             if not valid:
                 errors.append({"view": view, "error": error})
                 continue
-            # Insert each valid view into the database
             mongo.db.views.insert_one(view)
 
         if errors:
@@ -58,20 +91,38 @@ def add_recommended(userId, profileId):
                 "message": "Some views were not added",
                 "errors": errors
             }), 400
+
         return jsonify({"message": "Views added successfully"}), 201
-    # Handle a single object
+
+    # Handle a single view
     valid, error = validate_view(data)
     if not valid:
         return jsonify(error), 400
-    # Insert the single view into the database
+
     mongo.db.views.insert_one(data)
     return jsonify({"message": "View added successfully"}), 201
 
+
 @view_bp.route("/<int:userId>/profiles/<int:profileId>/views/<int:filmId>", methods=["GET"])
-def get_actor_by_id(userId,profileId,filmId):
+def get_view_by_id(userId, profileId, filmId):
     """
-  Ottieni i dettagli completi di un film specifico per un determinato utente e profilo.
-  """
+    Retrieve detailed information about a specific film view for a user profile.
+
+    Parameters
+    ----------
+    userId : int
+        The unique identifier of the user.
+    profileId : int
+        The unique identifier of the user's profile.
+    filmId : int
+        The unique identifier of the viewed film.
+
+    Returns
+    -------
+    Response
+        - 200: View details with film information.
+        - 404: View or film not found.
+    """
     view = mongo.db.views.find_one({
         "filmId": filmId,
         "userId": userId,
@@ -81,12 +132,12 @@ def get_actor_by_id(userId,profileId,filmId):
     if not view:
         return jsonify({"error": "View not found"}), 404
 
-    # Effettua la richiesta al servizio contenuti per ottenere i dettagli del film
+    # Request film details from the content service
     try:
         response = requests.get(f"{CONTENT_SERVICE_URL}/{filmId}")
         if response.status_code == 200:
             film_details = response.json()
-            view["_id"] = str(view["_id"])  # Converti ObjectId in stringa
+            view["_id"] = str(view["_id"])  # Convert ObjectId to string
             view["filmDetails"] = film_details
         else:
             return jsonify({"error": "Film not found in content service"}), 404
@@ -95,8 +146,32 @@ def get_actor_by_id(userId,profileId,filmId):
 
     return jsonify(view), 200
 
+
 @view_bp.route("/<int:userId>/profiles/<int:profileId>/views/<int:filmId>", methods=["PUT"])
-def update_actor(userId,profileId,filmId):
+def update_view(userId, profileId, filmId):
+    """
+    Update details of a specific film view for a user profile.
+
+    Parameters
+    ----------
+    userId : int
+        The unique identifier of the user.
+    profileId : int
+        The unique identifier of the user's profile.
+    filmId : int
+        The unique identifier of the viewed film.
+
+    Request Body
+    ------------
+    JSON
+        The updated view details.
+
+    Returns
+    -------
+    Response
+        - 200: View updated successfully.
+        - 404: View not found.
+    """
     data = request.json
     updated_view = mongo.db.views.find_one_and_update(
         {
@@ -108,16 +183,35 @@ def update_actor(userId,profileId,filmId):
         return_document=True
     )
     if updated_view:
-        return jsonify(str(updated_view)), 200
+        updated_view["_id"] = str(updated_view["_id"])  # Convert ObjectId to string
+        return jsonify(updated_view), 200
     return jsonify({"error": "View not found"}), 404
 
-@view_bp.route("/<int:userId>/profiles/<int:profileId>/views/<int:filmId>", methods=["DELETE"])
-def delete_view(userId,profileId,filmId):
 
+@view_bp.route("/<int:userId>/profiles/<int:profileId>/views/<int:filmId>", methods=["DELETE"])
+def delete_view(userId, profileId, filmId):
+    """
+    Delete a specific film view for a user profile.
+
+    Parameters
+    ----------
+    userId : int
+        The unique identifier of the user.
+    profileId : int
+        The unique identifier of the user's profile.
+    filmId : int
+        The unique identifier of the viewed film.
+
+    Returns
+    -------
+    Response
+        - 204: View deleted successfully.
+        - 404: View not found.
+    """
     result = mongo.db.views.delete_one({
-        "filmId" : filmId,
+        "filmId": filmId,
         "profileId": profileId
     })
     if result.deleted_count > 0:
-        return "deleted", 204
+        return jsonify({"message": "View deleted successfully"}), 204
     return jsonify({"error": "View not found"}), 404

@@ -1,5 +1,6 @@
 from flask_pymongo import PyMongo
 
+#Init mongo database
 mongo = PyMongo()
 
 """

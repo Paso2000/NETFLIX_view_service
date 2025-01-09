@@ -1,0 +1,295 @@
+openapi: 3.0.0
+info:
+  title: View and Recommended Films API
+  description: API for managing film views and recommended films for user profiles.
+  version: 1.0.0
+servers:
+  - url: http://localhost:8082
+    description: Local development server for views and recommended
+
+paths:
+  /users/{userId}/profiles/{profileId}/views:
+    get:
+      summary: Retrieve all views for a user profile
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: The unique identifier of the user.
+        - name: profileId
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: The unique identifier of the user's profile.
+      responses:
+        '200':
+          description: A list of views with detailed film information.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/View'
+        '404':
+          description: User or profile not found.
+
+    post:
+      summary: Add one or more film views for a user profile
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: The unique identifier of the user.
+        - name: profileId
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: The unique identifier of the user's profile.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              oneOf:
+                - type: array
+                  items:
+                    $ref: '#/components/schemas/View'
+                - $ref: '#/components/schemas/View'
+            example:
+              - filmId: 1
+                userId: 123
+                profileId: 456
+                timesOFTheFilm: 3
+              - filmId: 2
+                userId: 123
+                profileId: 456
+                timesOFTheFilm: 5
+      responses:
+        '201':
+          description: Views added successfully.
+        '400':
+          description: Validation error.
+
+  /users/{userId}/profiles/{profileId}/views/{filmId}:
+    get:
+      summary: Retrieve detailed information about a specific view
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: The unique identifier of the user.
+        - name: profileId
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: The unique identifier of the user's profile.
+        - name: filmId
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: The unique identifier of the film.
+      responses:
+        '200':
+          description: View details with film information.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/View'
+        '404':
+          description: View or film not found.
+
+    put:
+      summary: Update a specific view for a user profile
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: The unique identifier of the user.
+        - name: profileId
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: The unique identifier of the user's profile.
+        - name: filmId
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: The unique identifier of the film.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/View'
+      responses:
+        '200':
+          description: View updated successfully.
+        '404':
+          description: View not found.
+
+    delete:
+      summary: Delete a specific view for a user profile
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: The unique identifier of the user.
+        - name: profileId
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: The unique identifier of the user's profile.
+        - name: filmId
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: The unique identifier of the film.
+      responses:
+        '204':
+          description: View deleted successfully.
+        '404':
+          description: View not found.
+
+  /users/{userId}/profiles/{profileId}/recommendeds:
+    get:
+      summary: Retrieve recommended films for a user profile
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: The unique identifier of the user.
+        - name: profileId
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: The unique identifier of the user's profile.
+      responses:
+        '200':
+          description: A list of recommended films with detailed information.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Recommended'
+
+    post:
+      summary: Add one or more recommended films for a user profile
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: The unique identifier of the user.
+        - name: profileId
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: The unique identifier of the user's profile.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              oneOf:
+                - type: array
+                  items:
+                    $ref: '#/components/schemas/Recommended'
+                - $ref: '#/components/schemas/Recommended'
+            example:
+              - filmId: 1
+                userId: 123
+                profileId: 456
+              - filmId: 2
+                userId: 123
+                profileId: 456
+      responses:
+        '201':
+          description: Recommended films added successfully.
+        '400':
+          description: Validation error.
+
+  /users/{userId}/profiles/{profileId}/recommendeds/{filmId}:
+    delete:
+      summary: Delete a specific recommended film for a user profile
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: The unique identifier of the user.
+        - name: profileId
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: The unique identifier of the user's profile.
+        - name: filmId
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: The unique identifier of the film.
+      responses:
+        '204':
+          description: Recommended film deleted successfully.
+        '404':
+          description: Recommended film not found.
+
+components:
+  schemas:
+    View:
+      type: object
+      properties:
+        filmId:
+          type: integer
+        userId:
+          type: integer
+        profileId:
+          type: integer
+        timesOFTheFilm:
+          type: integer
+      example:
+        filmId: 1
+        userId: 123
+        profileId: 456
+        timesOFTheFilm: 5
+
+    Recommended:
+      type: object
+      properties:
+        filmId:
+          type: integer
+        userId:
+          type: integer
+        profileId:
+          type: integer
+      example:
+        filmId: 1
+        userId: 123
+        profileId: 456
+
