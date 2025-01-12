@@ -266,13 +266,14 @@ components:
       type: object
       properties:
         filmId:
-          type: integer
+          $ref: '#/components/schemas/FilmId'
         userId:
-          type: integer
+          $ref: '#/components/schemas/UserId'
         profileId:
-          type: integer
+          $ref: '#/components/schemas/ProfileId'
         timesOFTheFilm:
           type: integer
+          description: Number of times the film has been viewed.
       example:
         filmId: 1
         userId: 123
@@ -283,13 +284,30 @@ components:
       type: object
       properties:
         filmId:
-          type: integer
+          $ref: '#/components/schemas/FilmId'
         userId:
-          type: integer
+          $ref: '#/components/schemas/UserId'
         profileId:
-          type: integer
+          $ref: '#/components/schemas/ProfileId'
       example:
         filmId: 1
         userId: 123
         profileId: 456
+
+    # Shared Components
+    FilmId:
+      type: integer
+      description: Unique identifier for the film.
+      example: 1
+
+    UserId:
+      type: integer
+      description: Unique identifier for the user.
+      example: 123
+
+    ProfileId:
+      type: integer
+      description: Unique identifier for the profile.
+      example: 456
+
 
