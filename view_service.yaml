@@ -1,0 +1,40 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: view-service
+  labels:
+    app: view-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: view-service
+  template:
+    metadata:
+      labels:
+        app: view-service
+    spec:
+      containers:
+        - name: view-service
+          image: pasamentiregistry.azurecr.io/view_service:latest # Sostituisci con l'immagine Docker del view service
+          ports:
+            - containerPort: 8082
+          env:
+            - name: MONGO_URI
+              value: "mongodb://view-mongodb:27017/viewdb"
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: view-service
+spec:
+  type: NodePort
+  selector:
+    app: view-service
+  ports:
+    - protocol: TCP
+      port: 8082
+      targetPort: 8082
+
+

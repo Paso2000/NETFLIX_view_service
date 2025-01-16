@@ -19,6 +19,7 @@ from flask import Flask
 from services.db import init_db
 from routes import init_routes  # Import routes to avoid circular dependencies
 from flask_cors import CORS
+import os
 
 def create_app():
     """
@@ -30,7 +31,7 @@ def create_app():
     app = Flask(__name__)
 
     # Application configuration
-    app.config["MONGO_URI"] = "mongodb://view_mongodb:27017/viewdb"
+    app.config["MONGO_URI"] = os.getenv("MONGO_URI","mongodb://view-mongodb:27017/viewdb")
 
     CORS(app)
 
